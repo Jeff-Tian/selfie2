@@ -1,8 +1,17 @@
 import cv2
 import dlib
+import os
+import os.path
+import numpy as np
 
 video_capture = cv2.VideoCapture(0)
 face_detector = dlib.get_frontal_face_detector()
+
+current_directory = os.path.dirname(os.path.realpath(__file__))
+landmark_file_name = 'shape_predictor_68_face_landmarks.dat'
+landmark_file_full_path = os.path.realpath(os.path.join(current_directory, './' + landmark_file_name))
+
+predictor = dlib.shape_predictor(landmark_file_full_path)
 
 
 def rect_to_bound_box(rect):
@@ -14,13 +23,21 @@ def rect_to_bound_box(rect):
     return x1, y1, x2, y2
 
 
-def sacle_back(bounding_box, scale):
-    (x1, y1, x2, y2) = bounding_box
-    x1 = int(x1 / scale)
-    y1 = int(y1 / scale)
-    x2 = int(x2 / scale)
-    y2 = int(y2 / scale)
-    return x1, y1, x2, y2
+def shape_to_np(shape):
+    coords = np.zeros((68, 2), 'int')
+
+    for i in range(0, 68):
+        coords[i] = (shape.part(i).x, shape.part(i).y)
+
+    return coords
+
+
+def scale_point_back(point, scale):
+    (x, y) = point
+    x = int(x / scale)
+    y = int(y / scale)
+
+    return x, y
 
 
 while True:
@@ -31,9 +48,10 @@ while True:
     face_rects = face_detector(gray, 1)
 
     for i, rect in enumerate(face_rects):
-        (x1, y1, x2, y2) = rect_to_bound_box(face_rects[i])
-        (x1, y1, x2, y2) = sacle_back((x1, y1, x2, y2), scale)
-        cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        shape = predictor(gray, face_rects[i])
+        shape = shape_to_np(shape)
+        for point in shape:
+            cv2.circle(image, scale_point_back((point[0], point[1]), scale), 2, (0, 0, 255), 1)
 
     cv2.imshow('Test', image)
 
