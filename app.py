@@ -14,6 +14,15 @@ def rect_to_bound_box(rect):
     return x1, y1, x2, y2
 
 
+def sacle_back(bounding_box, scale):
+    (x1, y1, x2, y2) = bounding_box
+    x1 = int(x1 / scale)
+    y1 = int(y1 / scale)
+    x2 = int(x2 / scale)
+    y2 = int(y2 / scale)
+    return x1, y1, x2, y2
+
+
 while True:
     ret, image = video_capture.read()
     scale = 200 / min(image.shape[0], image.shape[1])
@@ -23,9 +32,10 @@ while True:
 
     for i, rect in enumerate(face_rects):
         (x1, y1, x2, y2) = rect_to_bound_box(face_rects[i])
-        cv2.rectangle(gray, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        (x1, y1, x2, y2) = sacle_back((x1, y1, x2, y2), scale)
+        cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-    cv2.imshow('Test', gray)
+    cv2.imshow('Test', image)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
