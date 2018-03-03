@@ -2,7 +2,12 @@ import cv2
 
 video_capture = cv2.VideoCapture(0)
 
-ret, image = video_capture.read()
-cv2.imshow('Test', image)
+while True:
+    ret, image = video_capture.read()
+    cv2.imshow('Test', image)
 
-cv2.waitKey()
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+video_capture.release()
+cv2.destroyAllWindows()
