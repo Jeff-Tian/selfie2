@@ -13,6 +13,8 @@ landmark_file_full_path = os.path.realpath(os.path.join(current_directory, './' 
 
 predictor = dlib.shape_predictor(landmark_file_full_path)
 
+sun_glasses_full_path = os.path.realpath(os.path.join(current_directory, './images/sunglasses.png'))
+
 
 def rect_to_bound_box(rect):
     x1 = rect.left()
@@ -40,6 +42,20 @@ def scale_point_back(point, scale):
     return x, y
 
 
+def add_sun_glasses_effect(image, center_point, width):
+    sun_glasses = cv2.imread(sun_glasses_full_path)
+
+    height = int(width * (sun_glasses.shape[0] / sun_glasses.shape[1]))
+
+    center_x, center_y = center_point
+    start_x = int(center_x - width / 2)
+    start_y = int(center_y - height / 2)
+
+    sun_glasses = cv2.resize(sun_glasses, (width, height), interpolation=cv2.INTER_AREA)
+
+    image[start_y:start_y + height, start_x:start_x + width] = sun_glasses
+
+
 while True:
     ret, image = video_capture.read()
     scale = 200 / min(image.shape[0], image.shape[1])
@@ -50,8 +66,9 @@ while True:
     for i, rect in enumerate(face_rects):
         shape = predictor(gray, face_rects[i])
         shape = shape_to_np(shape)
-        for point in shape:
-            cv2.circle(image, scale_point_back((point[0], point[1]), scale), 2, (0, 0, 255), 1)
+
+        width = int(abs(shape[17][0] - shape[26][0]) / scale)
+        add_sun_glasses_effect(image, scale_point_back((shape[27][0], shape[27][1]), scale), width + 38)
 
     cv2.imshow('Test', image)
 
