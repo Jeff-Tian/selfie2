@@ -1,6 +1,5 @@
 import cv2
 import dlib
-import os
 import os.path
 import numpy as np
 
@@ -44,7 +43,6 @@ def scale_point_back(point, scale):
 
 def add_sun_glasses_effect(image, center_point, width):
     sun_glasses = cv2.imread(sun_glasses_full_path)
-
     height = int(width * (sun_glasses.shape[0] / sun_glasses.shape[1]))
 
     center_x, center_y = center_point
@@ -53,7 +51,17 @@ def add_sun_glasses_effect(image, center_point, width):
 
     sun_glasses = cv2.resize(sun_glasses, (width, height), interpolation=cv2.INTER_AREA)
 
-    image[start_y:start_y + height, start_x:start_x + width] = sun_glasses
+    gray_sun_glasses = cv2.cvtColor(sun_glasses, cv2.COLOR_BGR2GRAY)
+    _, mask = cv2.threshold(gray_sun_glasses, 200, 255, cv2.THRESH_BINARY_INV)
+    mask_inv = cv2.bitwise_not(mask)
+
+    glass_area = image[start_y:start_y + height, start_x:start_x + width]
+    glass_area_mask = cv2.bitwise_and(glass_area, glass_area, mask=mask_inv)
+    sun_glasses_mask = cv2.bitwise_and(sun_glasses, sun_glasses, mask=mask)
+
+    merged = cv2.add(glass_area_mask, sun_glasses_mask)
+
+    image[start_y:start_y + height, start_x:start_x + width] = merged
 
 
 while True:
