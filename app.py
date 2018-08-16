@@ -69,7 +69,7 @@ while True:
     scale = 200 / min(image.shape[0], image.shape[1])
     thumb = cv2.resize(image, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
     gray = cv2.cvtColor(thumb, cv2.COLOR_BGR2GRAY)
-    face_rects = face_detector(gray, 1)
+    face_rects = face_detector(gray)
 
     for i, rect in enumerate(face_rects):
         shape = predictor(gray, face_rects[i])
